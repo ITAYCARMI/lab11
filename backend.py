@@ -89,6 +89,6 @@ def viewall():
 def search_entry(id, title, year):
     conn, cur = connect()
     with conn:
-        cur.execute("SELECT  * FROM Movies WHERE id like ? and title like ?;", (id,'%'+year+'%',))
+        cur.execute("SELECT  * FROM Movies WHERE id like ? and title like ? and title like ?;", ('%'+id+'%', '%'+title+'%', '%'+year+'%',))
         rows = cur.fetchall()
         return rows
