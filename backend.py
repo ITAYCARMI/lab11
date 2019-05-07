@@ -46,10 +46,10 @@ def view():
             print(row)
 
 
-def delete(item):
+def delete(id, title, genre):
     conn, cur = connect()
     with conn:
-        cur.execute("DELETE FROM Movies WHERE item = ?", (item,))
+        cur.execute("DELETE FROM Movies WHERE id = ? and title = ? and genre = ?;", (id, title, genre))
         conn.commit()
 
 
@@ -77,6 +77,9 @@ def readCSV():
 #if __name__ == '__main__':
 #    app.run(debug=True)
 
+# init()
+# readCSV()
+# view()
 
 def viewall():
     conn, cur = connect()

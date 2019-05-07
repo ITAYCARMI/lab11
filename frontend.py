@@ -1,5 +1,7 @@
 from Tkinter import *
 from backend import *
+import tkinter.messagebox
+
 
 class GUI:
     movies_list = {}
@@ -46,7 +48,6 @@ class GUI:
         self.movies_List_Entry = Listbox(root, width=25, height=8, yscrollcommand = self.scrollbar.set)
         self.movies_List_Entry.grid(row=3, column=0, rowspan=5, columnspan=2)
 
-
     def view_all(self):
         self.movies_List_Entry.delete(0, END)
         for row in viewall():
@@ -68,19 +69,29 @@ class GUI:
             title_movie = self.entry_Title.get()
             id_movie = self.entry_Id.get()
             year_movie = self.entry_Year.get()
-            self.movies_list[self.entry_Id] = {'title': title_movie, 'id': id_movie, 'year': year_movie}
-            self.movies_List_Entry.delete(0, END)
-            for movie in self.movies_list:
-                self.movies_List_Entry.insert(END, self.movies_list[movie].title)
+            insert(id_movie, str(title_movie) + " " + str(year_movie), None)
+            self.view_all()
 
     def update_movie(self):
         pass
 
     def delete_movie(self):
-        pass
+        if self.movies_List_Entry.get(ACTIVE) == '':
+            tkinter.messagebox.showerror("Error", "Please choose one from the movies")
+        else:
+            value = str((self.movies_List_Entry.get(ACTIVE)))
+            split_value = value[1:len(value) - 1]
+            final_splited_value = split_value.split(', ')
+            del_id = final_splited_value[0].replace('\'', '')
+            del_title = final_splited_value[1].replace('\'', '')
+            del_genre = final_splited_value[2].replace('\'', '')
+            print value
+            delete(del_id, del_title, del_genre)
+            self.view_all()
 
-    def close(self):
-        pass
+    @staticmethod
+    def close():
+        root.destroy()
 
 
 if __name__ == '__main__':
@@ -89,3 +100,4 @@ if __name__ == '__main__':
     root = Tk()
     g = GUI(root)
     root.mainloop()
+    print('CLOSED!')
