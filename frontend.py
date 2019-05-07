@@ -53,12 +53,13 @@ class GUI:
             self.movies_List_Entry.insert(END, row)
 
     def search_movie(self):
-        if self.entry_Title.get() == '' or self.entry_Id.get() == '' or self.entry_Year.get() == '':
+        if self.entry_Title.get() == '' and self.entry_Id.get() == '' and self.entry_Year.get() == '':
             tkinter.messagebox.showerror("Error", "Please fill one entry")
         else:
-            title = self.entry_Title
-            id = self.entry_Id
-            year = self.entry_Year
+            self.movies_List_Entry.delete(0, END)
+            for row in search_entry(self.entry_Id.get(), self.entry_Title.get(), self.entry_Year.get()):
+                self.movies_List_Entry.insert(END, row)
+
 
     def add_movie(self):
         if self.entry_Title.get() == '' or self.entry_Id.get() == '' or self.entry_Year.get() == '':

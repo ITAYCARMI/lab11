@@ -11,6 +11,8 @@ app = Flask(__name__)
 def init():
     conn, cur = connect()
     create_store_table(conn, cur)
+    readCSV()
+
 
 
 def connect():
@@ -75,9 +77,6 @@ def readCSV():
 #if __name__ == '__main__':
 #    app.run(debug=True)
 
-init()
-readCSV()
-view()
 
 def viewall():
     conn, cur = connect()
@@ -87,3 +86,9 @@ def viewall():
         return rows
 
 
+def search_entry(id, title, year):
+    conn, cur = connect()
+    with conn:
+        cur.execute("SELECT  * FROM Movies WHERE id like ? and title like ?;", (id,'%'+year+'%',))
+        rows = cur.fetchall()
+        return rows
