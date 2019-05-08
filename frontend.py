@@ -23,17 +23,20 @@ class GUI:
         self.entry_Id = Entry(root)
         self.text_Id.grid(row=1)
         self.entry_Id.grid(row=1, column=1)
-        self.text_Year = Label(root, text="Year:")
-        self.entry_Year = Entry(root)
-        self.text_Year.grid(row=0,column=2)
-        self.entry_Year.grid(row=0, column=3)
+        self.text_Genre = Label(root, text="Genre:")
+        self.entry_Genre = Entry(root)
+        self.text_Genre.grid(row=0, column=2)
+        self.entry_Genre.grid(row=0, column=3)
 
-        self.button_View = Button(text="View all", fg='black', height = 1, width = 13,command=lambda: self.view_all())
-        self.button_Search = Button(text="Search entry", fg='black', height = 1, width = 13,command=lambda: self.search_movie())
-        self.button_Add = Button(text="Add entry", fg='black', height = 1, width = 13, command=lambda: self.add_movie())
-        self.button_Update = Button(text="Update selected", fg='black', height = 1, width = 13, command=lambda: self.update_movie())
-        self.button_Delete = Button(text="Delete selected", fg='black',  height = 1, width = 13,command=lambda: self.delete_movie())
-        self.button_Close = Button(text="Close", fg='black',height = 1, width = 13, command=lambda: self.close())
+        self.button_View = Button(text="View all", fg='black', height=1, width=13, command=lambda: self.view_all())
+        self.button_Search = Button(text="Search entry", fg='black', height=1, width=13,
+                                    command=lambda: self.search_movie())
+        self.button_Add = Button(text="Add entry", fg='black', height=1, width=13, command=lambda: self.add_movie())
+        self.button_Update = Button(text="Update selected", fg='black', height=1, width=13,
+                                    command=lambda: self.update_movie())
+        self.button_Delete = Button(text="Delete selected", fg='black',  height=1, width=13,
+                                    command=lambda: self.delete_movie())
+        self.button_Close = Button(text="Close", fg='black', height=1, width=13, command=lambda: self.close())
 
         self.button_View.grid(row=2, column=3)
         self.button_Search.grid(row=3, column=3)
@@ -43,7 +46,7 @@ class GUI:
         self.button_Close.grid(row=7, column=3)
         # scrollbar
         self.scrollbar = Scrollbar(root)
-        self.scrollbar.grid(row=4,column=2, rowspan=2)
+        self.scrollbar.grid(row=4, column=2, rowspan=2)
         # listBox
         self.movies_List_Entry = Listbox(root, width=25, height=8, yscrollcommand = self.scrollbar.set)
         self.movies_List_Entry.grid(row=3, column=0, rowspan=5, columnspan=2)
@@ -54,22 +57,21 @@ class GUI:
             self.movies_List_Entry.insert(END, row)
 
     def search_movie(self):
-        if self.entry_Title.get() == '' and self.entry_Id.get() == '' and self.entry_Year.get() == '':
+        if self.entry_Title.get() == '' and self.entry_Id.get() == '' and self.entry_Genre.get() == '':
             tkinter.messagebox.showerror("Error", "Please fill one entry")
         else:
             self.movies_List_Entry.delete(0, END)
-            for row in search_entry(self.entry_Id.get(), self.entry_Title.get(), self.entry_Year.get()):
+            for row in search_entry(self.entry_Id.get(), self.entry_Title.get(), self.entry_Genre.get()):
                 self.movies_List_Entry.insert(END, row)
 
-
     def add_movie(self):
-        if self.entry_Title.get() == '' or self.entry_Id.get() == '' or self.entry_Year.get() == '':
+        if self.entry_Title.get() == '' or self.entry_Id.get() == '' or self.entry_Genre.get() == '':
             tkinter.messagebox.showerror("Error", "Please fill all entries")
         else:
             title_movie = self.entry_Title.get()
             id_movie = self.entry_Id.get()
-            year_movie = self.entry_Year.get()
-            insert(id_movie, str(title_movie) + " " + str(year_movie), None)
+            genre_movie = self.entry_Genre.get()
+            insert(id_movie, title_movie, genre_movie)
             self.view_all()
 
     def update_movie(self):
