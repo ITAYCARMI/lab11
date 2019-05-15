@@ -7,6 +7,10 @@ class GUI:
     movies_list = {}
 
     def __init__(self, root):
+        """
+        This method init the GUI of part A
+        :param root: the main instance of gui class
+        """
         self.topFrame = Frame(root)
         window_width = 400
         window_height = 400
@@ -52,11 +56,17 @@ class GUI:
         self.movies_List_Entry.grid(row=3, column=0, rowspan=5, columnspan=2)
 
     def view_all(self):
+        """
+        This method show all movies details
+        """
         self.movies_List_Entry.delete(0, END)
         for row in viewall():
             self.movies_List_Entry.insert(END, row)
 
     def search_movie(self):
+        """
+        This method show details of searcher movie
+        """
         if self.entry_Title.get() == '' and self.entry_Id.get() == '' and self.entry_Genre.get() == '':
             tkinter.messagebox.showerror("Error", "Please fill one entry")
         else:
@@ -65,6 +75,9 @@ class GUI:
                 self.movies_List_Entry.insert(END, row)
 
     def add_movie(self):
+        """
+        This method add movie to db and show it in GUI
+        """
         if self.entry_Title.get() == '' or self.entry_Id.get() == '' or self.entry_Genre.get() == '':
             tkinter.messagebox.showerror("Error", "Please fill all entries")
         else:
@@ -75,11 +88,55 @@ class GUI:
             self.view_all()
 
     def update_movie(self):
-        pass
+        """
+        This method update movie to db and show it in GUI
+        """
+        if self.movies_List_Entry.get(ACTIVE) == '':
+            tkinter.messagebox.showerror("Error", "Please choose one from the movies to update")
+        elif self.entry_Title.get() == '' and self.entry_Id.get() == '' and self.entry_Genre.get() == '':
+            tkinter.messagebox.showerror("Error", "Please fill one from the entries")
+        else:
+            value = str((self.movies_List_Entry.get(ACTIVE)))
+            split_value = value[1:len(value) - 1]
+            final_splited_value = split_value.split(', ')
+            new_id = self.entry_Id.get()
+            new_title = self.entry_Title.get()
+            new_genre = self.entry_Genre.get()
+            del_id = final_splited_value[0].replace('\'', '')
+            del_title = final_splited_value[1].replace('\'', '')
+            del_genre = final_splited_value[2].replace('\'', '')
+            if new_id != '':
+                if new_genre != '' and new_title != '':
+                    self.add_movie()
+                    delete(del_id, del_title, del_genre)
+                elif new_genre != '' and new_title == '':
+                    self.entry_Title.insert(0, del_title)
+                    self.add_movie()
+                    delete(del_id, del_title, del_genre)
+                elif new_genre == '' and new_title != '':
+                    self.entry_Genre.insert(0, del_genre)
+                    self.add_movie()
+                    delete(del_id, del_title, del_genre)
+                else:
+                    self.entry_Title.insert(0, del_title)
+                    self.entry_Genre.insert(0, del_genre)
+                    self.add_movie()
+                    delete(del_id, del_title, del_genre)
+            else:
+                if new_genre != '' and new_title != '':
+                    update(del_id, new_title, new_genre)
+                elif new_genre != '' and new_title == '':
+                    update(del_id, del_title, new_genre)
+                else:
+                    update(del_id, new_title, del_genre)
+        self.view_all()
 
     def delete_movie(self):
+        """
+        This method delete movie from db and show it in GUI
+        """
         if self.movies_List_Entry.get(ACTIVE) == '':
-            tkinter.messagebox.showerror("Error", "Please choose one from the movies")
+            tkinter.messagebox.showerror("Error", "Please choose one from the movies to delete")
         else:
             value = str((self.movies_List_Entry.get(ACTIVE)))
             split_value = value[1:len(value) - 1]
@@ -93,6 +150,9 @@ class GUI:
 
     @staticmethod
     def close():
+        """
+        This method close the GUI
+        """
         root.destroy()
 
 
