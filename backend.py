@@ -98,16 +98,21 @@ def read_csv():
     This method read details of movies from csv file
     """
     data_insert = []
-    with open('movies.csv', mode='r') as movies:
-        reader = csv.reader(movies)
-        for row in reader:
-            if not row[0] == 'movieId':
-                id = row[0]
-                title = row[1]
-                genre = row[2].split("|")[0]
-                data_insert.append([id, title, genre])
-    insert_first_time(data_insert)
-    movies.close()
+    with sqlite3.connect("movies.db") as db:
+        cursor = db.cursor()
+        cursor.execute('''SELECT COUNT(*) from Movies ''')
+        result = cursor.fetchall()
+        if result[0][0] == 0:
+            with open('movies.csv', mode='r') as movies:
+                reader = csv.reader(movies)
+                for row in reader:
+                    if not row[0] == 'movieId':
+                        id = row[0]
+                        title = row[1]
+                        genre = row[2].split("|")[0]
+                        data_insert.append([id, title, genre])
+            insert_first_time(data_insert)
+            movies.close()
 
 
 def viewall():
@@ -329,15 +334,16 @@ def web_service():
     if request.method == 'GET' and not request.method == 'POST':
         print "GET"
         if request.values.get('userid') is None and request.values.get('k') is None:
-            print "waiting to get arguments"
+            print "Waiting to get arguments"
+            return jsonify("Waiting to your get request")
         else:
             id = int(request.values.get('userid'))
             k = int(request.values.get('k'))
             if users.__contains__(id) and 0 < k < len(users):
                 return recommend_movie(id, k)
             else:
-                print "your values are invalids"
-                abort("your values are invalids")
+                print "Your values are invalids"
+                return jsonify("Your values are invalids")
     elif request.method == 'POST':
         print "POST"
         id = int(request.values.get('userid'))
@@ -345,11 +351,11 @@ def web_service():
         if users.__contains__(id) and 0 < k < len(users):
             return recommend_movie(id, k)
         else:
-            print "your values are invalids"
-            abort("your values are invalids")
+            print "Your values are invalids"
+            return jsonify("Your values are invalids")
     else:
-        print "your values are invalids"
-        abort("your values are invalids")
+        print "Your values are invalids"
+        return jsonify("Your values are invalids")
         pass
 
 
