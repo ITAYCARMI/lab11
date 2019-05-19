@@ -11,6 +11,7 @@ class GUI:
         This method init the GUI of part A
         :param root: the main instance of gui class
         """
+        init()
         self.topFrame = Frame(root)
         window_width = 400
         window_height = 400

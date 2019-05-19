@@ -25,7 +25,7 @@ def connect():
     This method connect to demo database using sqlite3
     :return: connection, current cursor
     """
-    conn = sqlite3.connect('demo.db')
+    conn = sqlite3.connect('movies.db')
     conn.text_factory = str
     current = conn.cursor()
     return conn, current
@@ -37,7 +37,7 @@ def create_store_table(conn, current):
     :param conn: connection of database
     :param current: current cursor
     """
-    current.execute("create table if not exists Movies(id TEXT, title TEXT, genre TEXT)")
+    current.execute("create table if not exists Movies(id TEXT, title TEXT, genre TEXT, PRIMARY KEY(id))")
     conn.commit()
     conn.close()
 
@@ -81,10 +81,23 @@ def update(id, title, genre):
         conn.commit()
 
 
+def insert_first_time(data_insert):
+    """
+    This method insert the movies details to movies table in one connection
+    :param data_insert: the movies details
+    """
+    conn, cur = connect()
+    for item in data_insert:
+        cur.execute("insert into Movies values (?, ?, ?);", (item[0], item[1], item[2]))
+    conn.commit()
+    conn.close()
+
+
 def read_csv():
     """
     This method read details of movies from csv file
     """
+    data_insert = []
     with open('movies.csv', mode='r') as movies:
         reader = csv.reader(movies)
         for row in reader:
@@ -92,7 +105,8 @@ def read_csv():
                 id = row[0]
                 title = row[1]
                 genre = row[2].split("|")[0]
-                insert(id, title, genre)
+                data_insert.append([id, title, genre])
+    insert_first_time(data_insert)
     movies.close()
 
 
@@ -312,15 +326,18 @@ def web_service():
     """
     global users
     init_users_set()
-    if request.method == 'GET':
+    if request.method == 'GET' and not request.method == 'POST':
         print "GET"
-        id = int(request.values.get('userid'))
-        k = int(request.values.get('k'))
-        if users.__contains__(id) and 0 < k < len(users):
-            return recommend_movie(id, k)
+        if request.values.get('userid') is None and request.values.get('k') is None:
+            print "waiting to get arguments"
         else:
-            print "your values are invalids"
-            abort("your values are invalids")
+            id = int(request.values.get('userid'))
+            k = int(request.values.get('k'))
+            if users.__contains__(id) and 0 < k < len(users):
+                return recommend_movie(id, k)
+            else:
+                print "your values are invalids"
+                abort("your values are invalids")
     elif request.method == 'POST':
         print "POST"
         id = int(request.values.get('userid'))
