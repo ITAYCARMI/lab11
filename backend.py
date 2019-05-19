@@ -1,8 +1,7 @@
 import sqlite3
-from flask import Flask, request
+from flask import Flask, request, jsonify, abort
 import math
 import csv
-# jasonify
 import pandas as pd
 
 
@@ -98,9 +97,6 @@ def read_csv():
     movies.close()
 
 
-# init()
-# readCSV()
-
 def viewall():
     """
     This method shows the details of movies from data base
@@ -158,7 +154,7 @@ def create_users_table(conn, current):
     :param conn: connection of database
     :param current: current cursor
     """
-    current.execute("create table if not exists Users(userId INTEGER, movieId INTEGER, rating FLOAT)")
+    current.execute("create table if not exists users(userId INTEGER, movieId INTEGER, rating FLOAT)")
     conn.commit()
     conn.close()
 
@@ -170,6 +166,7 @@ def read_users_csv():
     global users
     with open('ratings.csv', mode='r') as ratings:
         reader = csv.reader(ratings)
+        print ("start insert")
         for row in reader:
             if not row[0] == 'userId':
                 user_id = row[0]
@@ -188,7 +185,7 @@ def insert_user(user_id, movie_id, rating):
     :param rating: movie rating that added
     """
     conn, cur = connect_users()
-    cur.execute("insert into Users values (?, ?, ?);", (user_id, movie_id, rating))
+    cur.execute("insert into users values (?, ?, ?);", (user_id, movie_id, rating))
     conn.commit()
     conn.close()
 
@@ -200,12 +197,23 @@ def recommend_movie(id, k):
     :param k: number of similar users, and k recommend movies
     :return: k movies that recommend to this user id
     """
-    init_users()
-    connect_users()
-    create_users_table()
-    read_users_csv()
+    # init_users()
+    global users
     list_recommended_users = find_similarity_users(id, k)
-    return find_recommended_k_movies(list_recommended_users)
+    return find_recommended_k_movies(list_recommended_users, k)
+
+
+def init_users_set():
+    """
+    This method make the set from all the users
+    """
+    global users
+    conn, cur = connect_users()
+    cur.execute("SELECT userId FROM users;")
+    for user in cur.fetchall():
+        user_value = str(user).replace('\'', '')
+        user_id = user_value[1:user_value.find(',')]
+        users.add(user_id)
 
 
 def find_similarity_users(id, k):
@@ -213,8 +221,9 @@ def find_similarity_users(id, k):
     This method find k users that similar with this user id
     :param id: the user that we want to find him k similar users
     :param k: number of similar users
-    :return:
+    :return: dictionary of similar users sorted by grade
     """
+    global users
     conn, cur = connect_users()
     id_movies = {}
     grade_users = {}
@@ -236,8 +245,8 @@ def find_similarity_users(id, k):
                 user_rating = user_value[user_value.find(',') + 1:user_value.find(')')]
                 user_movies[user_movie_id] = user_rating
             grade_users[user_id] = users_calculation(id_movies, user_movies)
-    sort_grade = sorted(grade_users, key=grade_users.get(), reverse=True)
-    return sort_grade[0:k]
+    sort_grade = sorted(grade_users, key=grade_users.get, reverse=True)
+    return sort_grade
 
 
 def users_calculation(id_movies, user_movies):
@@ -245,9 +254,9 @@ def users_calculation(id_movies, user_movies):
     This method calculate the grade of specify user
     :param id_movies: movies dictionary of user id
     :param user_movies: movies dictionary of other user
-    :return:
+    :return: grade of user
     """
-    if set(id_movies.keys() & user_movies.keys()) == 0:
+    if len(set(id_movies.keys()) & set(user_movies.keys())) == 0:
         return 0
     average_rank_id_movies = float(sum(id_movies.values())) / len(id_movies)
     average_rank_user_movies = float(sum(user_movies.values())) / len(user_movies)
@@ -266,20 +275,21 @@ def users_calculation(id_movies, user_movies):
         id_denominator += math.pow(range_id, 2)
         user_denominator += math.pow(range_user, 2)
 
-    if id_denominator == 0 or user_denominator == 0:
-        return 0
-    else:
+    if id_denominator > 0 and user_denominator > 0:
         return mone / (math.pow(id_denominator, 0.5) * math.pow(user_denominator, 0.5))
+    else:
+        return 0
 
 
-def find_recommended_k_movies(list_recommended_users):
+def find_recommended_k_movies(list_recommended_users, k):
     """
     This method return k recommended movies for the user id
     :param list_recommended_users: list of k similar users
+    :param k: number of recommend movies
     :return: k recommended movies for the user id
     """
     conn, cur = connect_users()
-    ans = []
+    answer = []
     for user_id in list_recommended_users:
         user_movies = {}
         cur.execute("SELECT movieId, rating FROM users WHERE userId=? ;", (user_id,))
@@ -290,10 +300,10 @@ def find_recommended_k_movies(list_recommended_users):
             user_movies[user_movie_id] = user_rating
         sort_user_movies_id = sorted(user_movies, key=user_movies.get, reverse=True)
         for movie_id in sort_user_movies_id:
-            if not ans.__contains__(movie_id):
-                ans.append(movie_id)
+            if not answer.__contains__(movie_id):
+                answer.append(movie_id)
                 break
-    return ans
+    return jsonify(answer[:int(k)])
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -301,12 +311,28 @@ def web_service():
     """
     This method control of connection to the web service
     """
-    # print 'hello'
-    id = request.form['userid']
-    k = request.form['k']
-    recommend_movie(id, k)
+    global users
+    init_users_set()
+    if request.method == 'GET':
+        id = request.values.get('userid')
+        k = request.values.get('k')
+        if users.__contains__(id) and k < len(users):
+            return recommend_movie(id, k)
+        else:
+            abort(404)
+            abort("thus values are invalids")
+    else:
+        value = request.values.get
+        id = request.values.get('userid')
+        k = request.values.get('k')
+        if users.__contains__(id) and k < len(users):
+            return recommend_movie(id, k)
+        else:
+            abort(404)
+            abort("thus values are invalids")
+        pass
 
 
 if __name__ == '__main__':
-    # init_users()
-    find_similarity_users(1, 2)
+    print "start"
+    app.run(debug=True)
