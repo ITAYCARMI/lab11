@@ -2,7 +2,7 @@ import sqlite3
 from flask import Flask, request, jsonify, abort
 import math
 import csv
-import pandas as pd
+import requests
 
 app = Flask(__name__)
 users = set()
@@ -313,30 +313,29 @@ def web_service():
     global users
     init_users_set()
     if request.method == 'GET':
+        print "GET"
         id = int(request.values.get('userid'))
         k = int(request.values.get('k'))
         if users.__contains__(id) and 0 < k < len(users):
             return recommend_movie(id, k)
         else:
-            abort(404)
-            abort("thus values are invalids")
+            print "your values are invalids"
+            abort("your values are invalids")
     elif request.method == 'POST':
-        print "post"
-        print "value"
-        value = request.values
-    else:
-        value = request.values.get
-        id = request.values.get('userid')
-        k = request.values.get('k')
-        if users.__contains__(id) and k < len(users):
+        print "POST"
+        id = int(request.values.get('userid'))
+        k = int(request.values.get('k'))
+        if users.__contains__(id) and 0 < k < len(users):
             return recommend_movie(id, k)
         else:
-            abort(404)
-            abort("thus values are invalids")
+            print "your values are invalids"
+            abort("your values are invalids")
+    else:
+        print "your values are invalids"
+        abort("your values are invalids")
         pass
 
 
 if __name__ == '__main__':
     print "start"
     app.run(debug=True)
-    # res = request.post("http://127.0.0.1:5000", data={'k': 5, 'userid': 1234})
