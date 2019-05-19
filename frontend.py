@@ -53,8 +53,9 @@ class GUI:
         self.scrollbar = Scrollbar(root)
         self.scrollbar.grid(row=4, column=2, rowspan=2)
         # listBox
-        self.movies_List_Entry = Listbox(root, width=25, height=8, yscrollcommand = self.scrollbar.set)
+        self.movies_List_Entry = Listbox(root, width=25, height=8, yscrollcommand=self.scrollbar.set)
         self.movies_List_Entry.grid(row=3, column=0, rowspan=5, columnspan=2)
+        self.scrollbar.config(command=self.movies_List_Entry.yview)
 
     def view_all(self):
         """
@@ -79,14 +80,18 @@ class GUI:
         """
         This method add movie to db and show it in GUI
         """
+
         if self.entry_Title.get() == '' or self.entry_Id.get() == '' or self.entry_Genre.get() == '':
             tkinter.messagebox.showerror("Error", "Please fill all entries")
         else:
-            title_movie = self.entry_Title.get()
-            id_movie = self.entry_Id.get()
-            genre_movie = self.entry_Genre.get()
-            insert(id_movie, title_movie, genre_movie)
-            self.view_all()
+            if not check_if_exist(self.entry_Id.get()):
+                title_movie = self.entry_Title.get()
+                id_movie = self.entry_Id.get()
+                genre_movie = self.entry_Genre.get()
+                insert(id_movie, title_movie, genre_movie)
+                self.view_all()
+            else:
+                tkinter.messagebox.showerror("Error", "id is catch, please insert new id")
 
     def update_movie(self):
         """

@@ -93,6 +93,17 @@ def insert_first_time(data_insert):
     conn.close()
 
 
+def check_if_exist(id):
+    conn, cur = connect()
+    cur.execute('SELECT COUNT(*) from Movies where id = ? ;', (id,))
+    result = cur.fetchall()
+    conn.commit()
+    conn.close()
+    if result[0][0] == 0:
+        return False
+    return True
+
+
 def read_csv():
     """
     This method read details of movies from csv file
