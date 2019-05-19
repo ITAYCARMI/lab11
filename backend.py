@@ -4,7 +4,6 @@ import math
 import csv
 import pandas as pd
 
-
 app = Flask(__name__)
 users = set()
 
@@ -212,7 +211,7 @@ def init_users_set():
     cur.execute("SELECT userId FROM users;")
     for user in cur.fetchall():
         user_value = str(user).replace('\'', '')
-        user_id = user_value[1:user_value.find(',')]
+        user_id = int(user_value[1:user_value.find(',')])
         users.add(user_id)
 
 
@@ -232,8 +231,8 @@ def find_similarity_users(id, k):
         cur.execute("SELECT movieId, rating FROM users WHERE userId=? ;", (id,))
         for item in cur.fetchall():
             value = str(item).replace('\'', '')
-            movie_id = value[1:value.find(',')]
-            rating = value[value.find(',') + 1:value.find(')')]
+            movie_id = int(value[1:value.find(',')])
+            rating = float(value[value.find(',') + 1:value.find(')')])
             id_movies[movie_id] = rating
         users.remove(id)
         for user_id in users:
@@ -241,8 +240,8 @@ def find_similarity_users(id, k):
             cur.execute("SELECT movieId, rating FROM users WHERE userId=? ;", (user_id,))
             for item in cur.fetchall():
                 user_value = str(item).replace('\'', '')
-                user_movie_id = user_value[1:user_value.find(',')]
-                user_rating = user_value[user_value.find(',') + 1:user_value.find(')')]
+                user_movie_id = int(user_value[1:user_value.find(',')])
+                user_rating = float(user_value[user_value.find(',') + 1:user_value.find(')')])
                 user_movies[user_movie_id] = user_rating
             grade_users[user_id] = users_calculation(id_movies, user_movies)
     sort_grade = sorted(grade_users, key=grade_users.get, reverse=True)
@@ -257,14 +256,14 @@ def users_calculation(id_movies, user_movies):
     :return: grade of user
     """
     if len(set(id_movies.keys()) & set(user_movies.keys())) == 0:
-        return 0
+        return 0.0
     average_rank_id_movies = float(sum(id_movies.values())) / len(id_movies)
     average_rank_user_movies = float(sum(user_movies.values())) / len(user_movies)
     mone = 0.0
     id_denominator = 0.0
     user_denominator = 0.0
 
-    for movie_id in set(id_movies.keys() & user_movies.keys()):
+    for movie_id in list(set(id_movies.keys()) & set(user_movies.keys())):
         rank_id = float(id_movies[movie_id])
         rank_user = float(user_movies[movie_id])
 
@@ -278,7 +277,7 @@ def users_calculation(id_movies, user_movies):
     if id_denominator > 0 and user_denominator > 0:
         return mone / (math.pow(id_denominator, 0.5) * math.pow(user_denominator, 0.5))
     else:
-        return 0
+        return 0.0
 
 
 def find_recommended_k_movies(list_recommended_users, k):
@@ -295,8 +294,8 @@ def find_recommended_k_movies(list_recommended_users, k):
         cur.execute("SELECT movieId, rating FROM users WHERE userId=? ;", (user_id,))
         for item in cur.fetchall():
             user_value = str(item).replace('\'', '')
-            user_movie_id = user_value[1:user_value.find(',')]
-            user_rating = user_value[user_value.find(',') + 1:user_value.find(')')]
+            user_movie_id = int(user_value[1:user_value.find(',')])
+            user_rating = float(user_value[user_value.find(',') + 1:user_value.find(')')])
             user_movies[user_movie_id] = user_rating
         sort_user_movies_id = sorted(user_movies, key=user_movies.get, reverse=True)
         for movie_id in sort_user_movies_id:
@@ -314,13 +313,17 @@ def web_service():
     global users
     init_users_set()
     if request.method == 'GET':
-        id = request.values.get('userid')
-        k = request.values.get('k')
-        if users.__contains__(id) and k < len(users):
+        id = int(request.values.get('userid'))
+        k = int(request.values.get('k'))
+        if users.__contains__(id) and 0 < k < len(users):
             return recommend_movie(id, k)
         else:
             abort(404)
             abort("thus values are invalids")
+    elif request.method == 'POST':
+        print "post"
+        print "value"
+        value = request.values
     else:
         value = request.values.get
         id = request.values.get('userid')
@@ -336,3 +339,4 @@ def web_service():
 if __name__ == '__main__':
     print "start"
     app.run(debug=True)
+    # res = request.post("http://127.0.0.1:5000", data={'k': 5, 'userid': 1234})
